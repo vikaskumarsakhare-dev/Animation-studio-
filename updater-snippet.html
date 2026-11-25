@@ -1,0 +1,20 @@
+<!-- put this at the very end of index.html, just before </body> (after all the script tags) -->
+<script>
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  var last = 0;
+  function ask() { var n = Date.now(); if (n - last < 60000) return; last = n; var s = navigator.serviceWorker.controller; if (s) s.postMessage({ type: 'check' }); }
+  function banner() {
+    if (document.getElementById('updbar')) return;
+    var d = document.createElement('div'); d.id = 'updbar';
+    d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;background:#1d2540;color:#eef0f7;border:1px solid #394468;border-radius:14px;padding:10px 14px;font:13px system-ui,sans-serif;display:flex;gap:12px;align-items:center;box-shadow:0 6px 20px #0008';
+    d.innerHTML = '<span>नया अपडेट तैयार है</span><button style="background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;border:0;border-radius:10px;padding:7px 12px;font:600 13px system-ui">अभी लागू करें</button><button style="background:none;color:#8a90bd;border:0;font-size:16px">✕</button>';
+    var b = d.querySelectorAll('button'); b[0].onclick = function () { location.reload(); }; b[1].onclick = function () { d.remove(); };
+    document.body.appendChild(d);
+  }
+  navigator.serviceWorker.addEventListener('message', function (e) { if (e.data && e.data.type === 'updated') banner(); });
+  navigator.serviceWorker.register('sw.js').then(function () { navigator.serviceWorker.ready.then(function () { setTimeout(ask, 1500); }); }).catch(function () { });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) ask(); });
+  if (location.hash === '#reset-updates' && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: 'reset' });
+})();
+</script>
